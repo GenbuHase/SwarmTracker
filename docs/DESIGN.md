@@ -67,9 +67,9 @@
 
 | UI 状態 | 条件 | Stack の骨格 |
 |---|---|---|
-| **Here** | `visible: true` | `NOW` / 会場名 / 地域 / `7/11 22:51にチェックイン` |
-| **Away** | `visible: false`, `reason: "disabled"` | `OFF` / `非公開` / `現在公開されていません` |
-| **Unknown** | `visible: false`, `reason: "no_public_checkin"` | `PRIVATE` / `共有されていません` / `公開記録がありません` |
+| Here | `visible: true` | `● NOW` / 会場名 / 地域 / `7/11 22:51にチェックイン` |
+| **Away** | `visible: false`, `reason: "disabled"` | `● OFF` / `非公開` / `現在公開されていません` |
+| **Unknown** | `visible: false`, `reason: "no_public_checkin"` | `● PRIVATE` / `共有されていません` / `公開記録がありません` |
 | Loading / Error | 取得中・失敗 | 場所は出さない |
 
 ### 1.7 主要ユースケース

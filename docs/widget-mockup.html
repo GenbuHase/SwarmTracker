@@ -146,13 +146,23 @@
       backdrop-filter: blur(8px);
     }
 
+    .stack-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .stack-eyebrow .dot {
+      flex-shrink: 0;
+    }
+
     .eyebrow {
       font-family: "Space Grotesk", sans-serif;
       font-size: 0.7rem;
       letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--muted);
-      margin-bottom: 8px;
     }
 
     .stack-title {
@@ -235,7 +245,10 @@
         <div>
           <div class="label">B. Stack — 単独ページ向け</div>
           <div id="stack" class="widget-stack" aria-live="polite">
-            <div class="eyebrow" id="stack-eyebrow">NOW</div>
+            <div class="stack-eyebrow">
+              <span class="dot" id="stack-dot" aria-hidden="true"></span>
+              <span class="eyebrow" id="stack-eyebrow">NOW</span>
+            </div>
             <p class="stack-title" id="stack-title">朝霞駅 (TJ12)</p>
             <p class="stack-sub" id="stack-sub">埼玉県朝霞市・日本</p>
             <div class="stack-time" id="stack-time">7/11 22:51にチェックイン</div>
@@ -288,6 +301,7 @@
     const compactDot = document.getElementById("compact-dot");
     const compactVenue = document.getElementById("compact-venue");
     const compactMeta = document.getElementById("compact-meta");
+    const stackDot = document.getElementById("stack-dot");
     const stackEyebrow = document.getElementById("stack-eyebrow");
     const stackTitle = document.getElementById("stack-title");
     const stackSub = document.getElementById("stack-sub");
@@ -295,11 +309,13 @@
 
     function apply(state) {
       const c = copy[state];
+      const dotClass = "dot " + (c.dot === "here" ? "" : c.dot);
       compact.classList.add("is-enter");
       requestAnimationFrame(() => {
         compactVenue.textContent = c.compactVenue;
         compactMeta.textContent = c.compactMeta;
-        compactDot.className = "dot " + (c.dot === "here" ? "" : c.dot);
+        compactDot.className = dotClass;
+        stackDot.className = dotClass;
         stackEyebrow.textContent = c.stackEyebrow || "NOW";
         stackTitle.textContent = c.stackTitle;
         stackSub.textContent = c.stackSub;

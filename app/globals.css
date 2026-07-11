@@ -108,13 +108,23 @@ a {
   opacity: 0.65;
 }
 
+.stack-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.stack-eyebrow .dot {
+  flex-shrink: 0;
+}
+
 .eyebrow {
   font-family: var(--font-display), "Space Grotesk", sans-serif;
   font-size: 0.7rem;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
-  margin-bottom: 8px;
 }
 
 .stack-title {
