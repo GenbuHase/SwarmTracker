@@ -1,0 +1,31 @@
+{
+  "name": "swarmtracker",
+  "version": "alpha-1.1.0",
+  "private": true,
+  "description": "Show your latest Swarm check-in on the web with On/Off privacy control",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/GenbuHase/SwarmTracker.git"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@upstash/redis": "^1.38.0",
+    "next": "^16.2.10",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^16.2.10",
+    "typescript": "^6.0.3"
+  }
+}
