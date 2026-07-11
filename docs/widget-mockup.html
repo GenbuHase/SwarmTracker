@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SwarmTracker — Widget mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600&family=Space+Grotesk:wght@500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c2430;
+      --muted: #5c6672;
+      --here: #0f7a6a;
+      --away: #8b929a;
+      --line: color-mix(in srgb, var(--ink) 12%, transparent);
+      --panel: color-mix(in srgb, #ffffff 72%, transparent);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      font-family: "IBM Plex Sans JP", system-ui, sans-serif;
+      background:
+        linear-gradient(145deg, #f3f0e8 0%, #e7eef2 55%, #dfe8e4 100%),
+        repeating-linear-gradient(
+          -18deg,
+          transparent 0 14px,
+          color-mix(in srgb, #1c2430 3.5%, transparent) 14px 15px
+        );
+      background-blend-mode: multiply;
+      padding: 48px 24px 72px;
+    }
+
+    main {
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 600;
+      font-size: 1.75rem;
+      letter-spacing: -0.03em;
+      margin: 0 0 8px;
+    }
+
+    .lede {
+      color: var(--muted);
+      margin: 0 0 32px;
+      line-height: 1.6;
+    }
+
+    section {
+      margin-bottom: 40px;
+    }
+
+    h2 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin: 0 0 12px;
+      font-weight: 600;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      font: inherit;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--ink);
+      border-radius: 999px;
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+
+    button[aria-pressed="true"] {
+      background: var(--ink);
+      color: #f7f5f0;
+      border-color: var(--ink);
+    }
+
+    /* --- Compact widget --- */
+    .widget-compact {
+      width: min(100%, 340px);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 30px color-mix(in srgb, #1c2430 6%, transparent);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .widget-compact.is-enter {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--here);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--here) 18%, transparent);
+    }
+
+    .dot.away { background: var(--away); box-shadow: 0 0 0 4px color-mix(in srgb, var(--away) 18%, transparent); }
+    .dot.unknown { background: #c4a35a; box-shadow: 0 0 0 4px color-mix(in srgb, #c4a35a 18%, transparent); }
+
+    .venue {
+      font-weight: 500;
+      font-size: 0.95rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .meta {
+      font-size: 0.75rem;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    /* --- Stack widget --- */
+    .widget-stack {
+      width: min(100%, 280px);
+      padding: 18px 18px 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      backdrop-filter: blur(8px);
+    }
+
+    .eyebrow {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stack-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin: 0 0 4px;
+      line-height: 1.3;
+    }
+
+    .stack-sub {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .stack-time {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid var(--line);
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .stage {
+      display: grid;
+      gap: 20px;
+    }
+
+    @media (min-width: 640px) {
+      .stage {
+        grid-template-columns: 1fr 1fr;
+        align-items: start;
+      }
+    }
+
+    .label {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    footer {
+      margin-top: 48px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    a { color: inherit; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>SwarmTracker widget</h1>
+    <p class="lede">
+      想定レイアウトの静的モックです。状態ボタンで Here / Away / Unknown を切り替えられます。
+      実装時は <code>/api/presence</code> の結果で同じ見た目を描画します。
+    </p>
+
+    <section>
+      <h2>State</h2>
+      <div class="controls" role="group" aria-label="表示状態">
+        <button type="button" data-state="here" aria-pressed="true">Here</button>
+        <button type="button" data-state="away" aria-pressed="false">Away (Off)</button>
+        <button type="button" data-state="unknown" aria-pressed="false">Unknown</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>Variants</h2>
+      <div class="stage">
+        <div>
+          <div class="label">A. Compact — 埋め込み向け</div>
+          <div id="compact" class="widget-compact" aria-live="polite">
+            <span class="dot" id="compact-dot" aria-hidden="true"></span>
+            <span class="venue" id="compact-venue">朝霞駅 (TJ12)</span>
+            <span class="meta" id="compact-meta">7/11 22:51</span>
+          </div>
+        </div>
+        <div>
+          <div class="label">B. Stack — 単独ページ向け</div>
+          <div id="stack" class="widget-stack" aria-live="polite">
+            <div class="eyebrow" id="stack-eyebrow">NOW</div>
+            <p class="stack-title" id="stack-title">朝霞駅 (TJ12)</p>
+            <p class="stack-sub" id="stack-sub">埼玉県朝霞市・日本</p>
+            <div class="stack-time" id="stack-time">7/11 22:51にチェックイン</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      設計詳細は <a href="./DESIGN.md">DESIGN.md</a> / <a href="./WIDGET.md">WIDGET.md</a>
+    </footer>
+  </main>
+
+  <script>
+    const copy = {
+      here: {
+        compactVenue: "朝霞駅 (TJ12)",
+        compactMeta: "7/11 22:51",
+        stackEyebrow: "NOW",
+        stackTitle: "朝霞駅 (TJ12)",
+        stackSub: "埼玉県朝霞市・日本",
+        stackTime: "7/11 22:51にチェックイン",
+        hideSub: false,
+        dot: "here",
+      },
+      away: {
+        compactVenue: "非公開",
+        compactMeta: "Off",
+        stackEyebrow: "OFF",
+        stackTitle: "非公開",
+        stackSub: "",
+        stackTime: "現在公開されていません",
+        hideSub: true,
+        dot: "away",
+      },
+      unknown: {
+        compactVenue: "共有されていません",
+        compactMeta: "—",
+        stackEyebrow: "PRIVATE",
+        stackTitle: "共有されていません",
+        stackSub: "",
+        stackTime: "公開記録がありません",
+        hideSub: true,
+        dot: "unknown",
+      },
+    };
+
+    const buttons = [...document.querySelectorAll("button[data-state]")];
+    const compact = document.getElementById("compact");
+    const compactDot = document.getElementById("compact-dot");
+    const compactVenue = document.getElementById("compact-venue");
+    const compactMeta = document.getElementById("compact-meta");
+    const stackEyebrow = document.getElementById("stack-eyebrow");
+    const stackTitle = document.getElementById("stack-title");
+    const stackSub = document.getElementById("stack-sub");
+    const stackTime = document.getElementById("stack-time");
+
+    function apply(state) {
+      const c = copy[state];
+      compact.classList.add("is-enter");
+      requestAnimationFrame(() => {
+        compactVenue.textContent = c.compactVenue;
+        compactMeta.textContent = c.compactMeta;
+        compactDot.className = "dot " + (c.dot === "here" ? "" : c.dot);
+        stackEyebrow.textContent = c.stackEyebrow || "NOW";
+        stackTitle.textContent = c.stackTitle;
+        stackSub.textContent = c.stackSub;
+        stackSub.hidden = Boolean(c.hideSub);
+        stackTime.textContent = c.stackTime;
+        compact.classList.remove("is-enter");
+      });
+      buttons.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.state === state)));
+    }
+
+    buttons.forEach((b) => b.addEventListener("click", () => apply(b.dataset.state)));
+  </script>
+</body>
+</html>
