@@ -1,15 +1,33 @@
 import { NextResponse } from "next/server";
+import {
+  extractBearerToken,
+  getAdminToken,
+  getClientIp,
+  safeEqual,
+} from "@/lib/admin-auth";
+import { consumeRateLimit } from "@/lib/rate-limit";
 import { setVisibility } from "@/lib/settings";
 import type { Visibility } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
+/** Failed auth attempts per IP within the window. */
+const AUTH_RATE_LIMIT = 10;
+const AUTH_RATE_WINDOW_SECONDS = 15 * 60;
+
 function unauthorized() {
   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 }
 
+function tooManyAttempts() {
+  return NextResponse.json(
+    { error: "Too many attempts. Try again later." },
+    { status: 429 },
+  );
+}
+
 export async function POST(request: Request) {
-  const adminToken = process.env.ADMIN_TOKEN;
+  const adminToken = getAdminToken();
   if (!adminToken) {
     return NextResponse.json(
       { error: "ADMIN_TOKEN is not configured" },
@@ -17,8 +35,18 @@ export async function POST(request: Request) {
     );
   }
 
-  const auth = request.headers.get("authorization");
-  if (!auth?.startsWith("Bearer ") || auth.slice(7) !== adminToken) {
+  const ip = getClientIp(request);
+  const provided = extractBearerToken(request.headers.get("authorization"));
+
+  if (!provided || !safeEqual(provided, adminToken)) {
+    const { ok } = await consumeRateLimit({
+      key: `visibility-auth:${ip}`,
+      limit: AUTH_RATE_LIMIT,
+      windowSeconds: AUTH_RATE_WINDOW_SECONDS,
+    });
+    if (!ok) {
+      return tooManyAttempts();
+    }
     return unauthorized();
   }
 

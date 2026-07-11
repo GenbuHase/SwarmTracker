@@ -35,11 +35,7 @@ export async function GET() {
     const message = err instanceof Error ? err.message : "Failed to load presence";
     console.error("[presence]", message);
     return NextResponse.json(
-      {
-        error: "Failed to load presence",
-        // Safe operational hint (no secrets). Helps local/admin debugging.
-        detail: message,
-      },
+      { error: "Failed to load presence" },
       {
         status: 500,
         headers: { "Cache-Control": "no-store" },

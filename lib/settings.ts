@@ -1,18 +1,7 @@
-import { Redis } from "@upstash/redis";
 import type { Settings, Visibility } from "./types";
+import { createRedis } from "./redis";
 
 const SETTINGS_KEY = "presence:settings";
-
-function createRedis(): Redis | null {
-  const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-
-  if (!url || !token) {
-    return null;
-  }
-
-  return new Redis({ url, token });
-}
 
 /** Unset settings → treat as off (safe default). */
 export async function getSettings(): Promise<Settings> {

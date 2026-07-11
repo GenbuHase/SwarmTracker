@@ -193,9 +193,9 @@ type Settings = {
 { "visibility": "on" }
 ```
 
-- 認証: `Authorization: Bearer ${ADMIN_TOKEN}`
+- 認証: `Authorization: Bearer ${ADMIN_TOKEN}`（失敗時は IP あたり試行制限）
 - 成功: `{ ok: true, visibility }`
-- 失敗: 401 / 400
+- 失敗: 401 / 400 / 429
 
 ### 2.6 画面
 
@@ -244,9 +244,12 @@ Admin ← { ok: true }
 
 ### 2.9 セキュリティチェックリスト
 
-- [ ] Swarm / Admin token は Env のみ
-- [ ] Off / Unknown 時は場所フィールドをレスポンスに含めない
-- [ ] `/admin` はトークンなしで変更不可
+- [x] Swarm / Admin token は Env のみ
+- [x] Off / Unknown 時は場所フィールドをレスポンスに含めない
+- [x] `/admin` はトークンなしで変更不可（visibility API の Bearer）
+- [x] visibility API の認証失敗に試行制限
+- [x] presence 500 に内部 detail を載せない
+- [x] `/admin` に `X-Frame-Options: DENY` 等
 - [ ] 本番ログに token・詳細位置を出さない
 - [ ] 露出した secret は再発行
 

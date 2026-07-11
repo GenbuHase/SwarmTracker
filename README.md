@@ -27,7 +27,7 @@ npm install
 | 変数                       | 用途                                |
 | ------------------------ | --------------------------------- |
 | `FOURSQUARE_OAUTH_TOKEN` | Swarm API                         |
-| `ADMIN_TOKEN`            | `/admin` と `POST /api/visibility` |
+| `ADMIN_TOKEN`            | `/admin` Unlock と `POST /api/visibility` |
 | `KV_REST_API_URL`        | Vercel KV / Upstash REST URL      |
 | `KV_REST_API_TOKEN`      | Vercel KV / Upstash REST token    |
 
@@ -55,9 +55,9 @@ npm run dev
 
 - `/` — Stack ウィジェット
 - `/embed` — Compact（埋め込み向け）
-- `/admin` — On/Off 管理（`ADMIN_TOKEN`）
+- `/admin` — On/Off 管理（Unlock で Bearer トークンを保持）
 - `GET /api/presence` — 公開 API
-- `POST /api/visibility` — 管理 API（`Authorization: Bearer ${ADMIN_TOKEN}`）
+- `POST /api/visibility` — 管理 API（`Authorization: Bearer ${ADMIN_TOKEN}`、失敗時は IP あたり試行制限あり）
 
 ローカルで KV が無い場合、`/api/presence` は **Away（disabled）** を返す。  
 `POST /api/visibility` は KV 必須のため失敗する。
