@@ -160,7 +160,6 @@ export default function AdminPage() {
   return (
     <main className="admin">
       <h1>SwarmTracker Admin</h1>
-      <p className="lede">公開表示の On/Off を切り替えます。一般ナビには載せない想定です。</p>
 
       <div className="admin-panel">
         <label>
@@ -202,17 +201,17 @@ export default function AdminPage() {
             disabled={!unlocked || busy || visibility === "on"}
             onClick={() => void setPublicVisibility("on")}
           >
-            Turn ON
+            ON
           </button>
           <button
             type="button"
             disabled={!unlocked || busy || visibility === "off"}
             onClick={() => void setPublicVisibility("off")}
           >
-            Turn OFF
+            OFF
           </button>
           <button type="button" disabled={busy} onClick={() => void refreshPresence()}>
-            Refresh preview
+            Refresh
           </button>
         </div>
 

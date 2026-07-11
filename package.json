@@ -1,6 +1,6 @@
 {
   "name": "swarmtracker",
-  "version": "alpha-1.1.2",
+  "version": "alpha-1.1.3",
   "private": true,
   "description": "Show your latest Swarm check-in on the web with On/Off privacy control",
   "scripts": {
