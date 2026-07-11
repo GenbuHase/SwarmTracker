@@ -22,7 +22,7 @@ type SwarmCheckin = {
 };
 
 type SwarmCheckinsResponse = {
-  meta?: { code?: number; errorDetail?: string };
+  meta?: { code?: number; errorDetail?: string; errorType?: string };
   response?: {
     checkins?: {
       items?: SwarmCheckin[];
