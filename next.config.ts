@@ -8,6 +8,12 @@ const adminSecurityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // LAN IP など localhost 以外から dev サーバーへアクセスするとき用。
+  // 未設定だと /_next/* がブロックされ、クライアントが「読み込み中」のまま止まる。
+  allowedDevOrigins: [
+    "192.168.2.136",
+  ],
+
   async headers() {
     return [
       {

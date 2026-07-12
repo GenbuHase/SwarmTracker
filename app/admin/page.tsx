@@ -31,17 +31,25 @@ function writeToken(value: string | null) {
   tokenListeners.forEach((listener) => listener());
 }
 
-function deriveFromPresence(json: PresenceResponse): {
-  visibility: Visibility;
-  uiState: UiState;
-} {
-  if (json.visible) return { visibility: "on", uiState: "here" };
-  if (json.reason === "disabled") return { visibility: "off", uiState: "away" };
-  return { visibility: "on", uiState: "unknown" };
+function deriveUiState(json: PresenceResponse): UiState {
+  if (json.visible) return "here";
+  if (json.reason === "disabled") return "away";
+  return "unknown";
+}
+
+function deriveVisibility(json: PresenceResponse): Visibility {
+  // presence はアプリ On/Off を直接返さないため推定する。
+  // disabled → off、それ以外（here / no_public_checkin）→ on
+  if (!json.visible && json.reason === "disabled") return "off";
+  return "on";
 }
 
 async function fetchPresence(): Promise<PresenceResponse> {
-  const res = await fetch("/api/presence", { cache: "no-store" });
+  // On 時の presence は CDN が max-age=60 でキャッシュする。
+  // 管理画面は切替直後に古い On 応答を拾わないよう bust する。
+  const res = await fetch(`/api/presence?_=${Date.now()}`, {
+    cache: "no-store",
+  });
   if (!res.ok) throw new Error("presence failed");
   return (await res.json()) as PresenceResponse;
 }
@@ -60,21 +68,28 @@ export default function AdminPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const applyPresence = useCallback((json: PresenceResponse) => {
-    const derived = deriveFromPresence(json);
-    setPresence(json);
-    setVisibility(derived.visibility);
-    setUiState(derived.uiState);
-  }, []);
+  const applyPresence = useCallback(
+    (json: PresenceResponse, options?: { syncVisibility?: boolean }) => {
+      setPresence(json);
+      setUiState(deriveUiState(json));
+      if (options?.syncVisibility !== false) {
+        setVisibility(deriveVisibility(json));
+      }
+    },
+    [],
+  );
 
-  const refreshPresence = useCallback(async () => {
-    try {
-      applyPresence(await fetchPresence());
-    } catch {
-      setPresence(null);
-      setUiState("error");
-    }
-  }, [applyPresence]);
+  const refreshPresence = useCallback(
+    async (options?: { syncVisibility?: boolean }) => {
+      try {
+        applyPresence(await fetchPresence(), options);
+      } catch {
+        setPresence(null);
+        setUiState("error");
+      }
+    },
+    [applyPresence],
+  );
 
   useEffect(() => {
     let cancelled = false;
@@ -145,9 +160,18 @@ export default function AdminPage() {
         throw new Error(json.error ?? `HTTP ${res.status}`);
       }
 
-      setVisibility(json.visibility ?? next);
-      setMessage(next === "on" ? "公開を On にしました" : "公開を Off にしました");
-      await refreshPresence();
+      // POST の結果が正。続けて presence を読むが、CDN に残った On 応答で
+      // visibility を上書きしない（Off に戻れないように見える不具合の原因）。
+      const confirmed = json.visibility ?? next;
+      setVisibility(confirmed);
+      setMessage(confirmed === "on" ? "公開を On にしました" : "公開を Off にしました");
+
+      if (confirmed === "off") {
+        setPresence({ visible: false, reason: "disabled" });
+        setUiState("away");
+      } else {
+        await refreshPresence({ syncVisibility: false });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "更新に失敗しました");
     } finally {
