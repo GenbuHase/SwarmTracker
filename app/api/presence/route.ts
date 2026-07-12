@@ -1,35 +1,20 @@
 import { NextResponse } from "next/server";
-import { getSettings } from "@/lib/settings";
-import { fetchLatestPublicCheckin } from "@/lib/swarm";
+import { getPresence } from "@/lib/presence";
 import type { PresenceResponse } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const settings = await getSettings();
+    const body = await getPresence();
 
-    if (settings.visibility !== "on") {
-      const body: PresenceResponse = { visible: false, reason: "disabled" };
-      return NextResponse.json(body, {
-        headers: { "Cache-Control": "no-store" },
-      });
-    }
+    const cacheControl =
+      body.visible === false && body.reason === "disabled"
+        ? "no-store"
+        : "public, max-age=60";
 
-    const checkin = await fetchLatestPublicCheckin();
-
-    if (!checkin) {
-      const body: PresenceResponse = {
-        visible: false,
-        reason: "no_public_checkin",
-      };
-      return NextResponse.json(body, {
-        headers: { "Cache-Control": "public, max-age=60" },
-      });
-    }
-
-    return NextResponse.json(checkin satisfies PresenceResponse, {
-      headers: { "Cache-Control": "public, max-age=60" },
+    return NextResponse.json(body satisfies PresenceResponse, {
+      headers: { "Cache-Control": cacheControl },
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Failed to load presence";

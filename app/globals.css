@@ -1,4 +1,6 @@
 :root {
+  --font-body: "IBM Plex Sans JP";
+  --font-display: "Space Grotesk";
   --ink: #1c2430;
   --muted: #5c6672;
   --here: #0f7a6a;

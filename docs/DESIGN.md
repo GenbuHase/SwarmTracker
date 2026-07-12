@@ -3,7 +3,7 @@
 自分の Swarm チェックインから「いまどこにいるか」を Web 上に表示する。  
 公開表示は管理者が On/Off でき、Swarm 上で private なチェックインは出さない。
 
-最終更新: 2026-07-12（UI 文言・時刻フォーマット確定後）
+最終更新: 2026-07-12（動的 OGP `/api/ogp` 追加）
 
 ---
 
@@ -34,6 +34,7 @@
 | 認証（Swarm） | 事前取得した **access token を Env に保存**（アプリに OAuth UI なし） |
 | 永続化 | **DB なし**。On/Off のみ **KV（Vercel KV / Upstash）** |
 | 公開 API | サーバ側 `/api/presence`（ブラウザは Swarm を直接叩かない） |
+| OGP | サーバ側 `/api/ogp`（Stack 風 1200×630、`next/og`） |
 | 表示対象 | アプリが On のとき、`visibility !== "private"` の**最新1件** |
 | 時刻 | `checkedInAt` + `timeZoneOffset` のローカル絶対時刻（`M/D HH:mm`） |
 | 管理 | `/admin` で On/Off（共有シークレット認証） |
@@ -45,14 +46,16 @@
 [Swarm / Foursquare API]
         ↑ Bearer token（Env）
 [Vercel]
-  ├─ GET  /api/presence     … 公開
+  ├─ GET  /api/presence     … 公開 JSON
+  ├─ GET  /api/ogp          … 動的 OGP 画像（Stack 風）
   ├─ POST /api/visibility   … 管理用
   ├─ GET  /admin            … On/Off UI
-  ├─ GET  /                 … 表示ページ（Stack）
+  ├─ GET  /                 … 表示ページ（Stack）+ OG メタ
   ├─ GET  /embed            … 埋め込み（Compact、任意）
   └─ KV                     … { visibility: "on" | "off" }
 
 [閲覧者ブラウザ] → / または /api/presence のみ
+[SNS クローラ]   → /（og:image）→ /api/ogp
 [管理者]         → /admin（ADMIN_TOKEN）
 ```
 
@@ -124,8 +127,10 @@
 | `FOURSQUARE_OAUTH_TOKEN` | Swarm API（サーバのみ） |
 | `ADMIN_TOKEN` | `/admin` と visibility API |
 | KV 接続情報 | URL / TOKEN 等（製品依存） |
+| `NEXT_PUBLIC_SITE_URL` | `metadataBase` / 絶対 OG URL（本番の正規 URL） |
 
-Client ID / Secret はランタイム不要（トークン発行時のみ）。
+Client ID / Secret はランタイム不要（トークン発行時のみ）。  
+`NEXT_PUBLIC_SITE_URL` 未設定時は `VERCEL_URL`、それも無ければ `http://localhost:3000`。
 
 ### 2.3 KV データモデル
 
@@ -187,7 +192,46 @@ type Settings = {
 **キャッシュ:** On 時 `Cache-Control: public, max-age=60` 程度。Off 時は `no-store` 推奨。  
 **セキュリティ:** token・Swarm 生 JSON 全体は返さない。`visible: false` のとき場所フィールドを含めない。
 
-### 2.5 管理 API: `POST /api/visibility`
+### 2.5 動的 OGP: `GET /api/ogp`
+
+`/` を Twitter / X 等に貼ったとき、Stack ウィジェット風のプレビュー画像を出す。
+
+**方針**
+
+- 実装: `next/og` の `ImageResponse`（1200×630 PNG）
+- 見た目: Stack ベース（Compact は埋め込み専用のため OGP には使わない）
+- データ: `getPresence()`（`/api/presence` と同一の二重ガード）
+- Off / Unknown / Error 時は**場所名を出さない**安全なカードを返す（Error でも 500 にせず画像を返す）
+
+**表示内容**
+
+| 状態 | カード |
+|---|---|
+| Here | `● NOW` / venueName / region / `{time}にチェックイン` + ブランド |
+| Away | `● OFF` / 非公開 / 現在公開されていません |
+| Unknown | `● PRIVATE` / 共有されていません / 公開記録がありません |
+
+**メタデータ**
+
+- `/` の `generateMetadata` で `og:image` / `twitter:card=summary_large_image` を設定
+- 画像 URL: `/api/ogp?v=${version}`
+  - Here: `checkinId`
+  - Away: `off-${settings.updatedAt}`
+  - Unknown: `unknown-${settings.updatedAt}`
+- SNS は画像 URL 単位で強くキャッシュするため、`v=` で URL バストする（完全即時反映は SNS 仕様上保証しない）
+
+**キャッシュ:** presence に合わせ `Cache-Control: public, max-age=60`
+
+**スコープ外（初期）:** Compact 版 OGP、シェアボタン UI、画像ダウンロード、`shout` 表示、DOM キャプチャ
+
+```text
+SNS → GET /
+App → getPresence() → HTML（og:image=/api/ogp?v=…）
+SNS → GET /api/ogp?v=…
+App → getPresence() → PNG 1200×630
+```
+
+### 2.6 管理 API: `POST /api/visibility`
 
 ```json
 { "visibility": "on" }
@@ -197,7 +241,7 @@ type Settings = {
 - 成功: `{ ok: true, visibility }`
 - 失敗: 401 / 400 / 429
 
-### 2.6 画面
+### 2.7 画面
 
 #### `/`（公開・Stack）
 
@@ -216,7 +260,7 @@ type Settings = {
 - （任意）presence プレビュー（Stack または Compact）
 - 一般ナビからはリンクしない想定で可
 
-### 2.7 シーケンス
+### 2.8 シーケンス
 
 **閲覧**
 
@@ -235,14 +279,15 @@ App   → KV.set(settings)
 Admin ← { ok: true }
 ```
 
-### 2.8 技術スタック（実装想定）
+### 2.9 技術スタック（実装想定）
 
 - Next.js（App Router）on Vercel
-- Route Handlers: `/api/presence`, `/api/visibility`
+- Route Handlers: `/api/presence`, `/api/visibility`, `/api/ogp`
 - KV: Vercel KV または Upstash Redis
 - フロント: `/`（Stack）+ `/admin`（+ 任意で `/embed` Compact）
+- OGP: `next/og` ImageResponse
 
-### 2.9 セキュリティチェックリスト
+### 2.10 セキュリティチェックリスト
 
 - [x] Swarm / Admin token は Env のみ
 - [x] Off / Unknown 時は場所フィールドをレスポンスに含めない
@@ -250,17 +295,19 @@ Admin ← { ok: true }
 - [x] visibility API の認証失敗に試行制限
 - [x] presence 500 に内部 detail を載せない
 - [x] `/admin` に `X-Frame-Options: DENY` 等
+- [x] OGP 画像も presence と同じガード（場所漏れなし）
 - [ ] 本番ログに token・詳細位置を出さない
 - [ ] 露出した secret は再発行
 
-### 2.10 今後の拡張（初期は作らない）
+### 2.11 今後の拡張（初期は作らない）
 
+- Twitter / X 共有連携（シェアボタン等。OGP 画像自体は §2.5 で対応済み）
+- Compact 版 OGP / 複数サイズ
 - 相対時刻の併記
 - 表示粒度（市区町村のみ等）
 - 自動 Off（N 時間後）
 - 地図埋め込み
 - GitHub Pages 静的同期
-- Twitter / X 共有連携
 
 ---
 
