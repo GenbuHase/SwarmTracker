@@ -191,18 +191,39 @@ a {
   line-height: 1.55;
 }
 
-.embed-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
+/* Embed: page chrome must be transparent so host background shows through the iframe */
+html:has(.embed-page),
+html:has(.embed-page) body {
+  margin: 0;
+  min-height: 0;
+  height: auto;
   background: transparent;
+  background-image: none;
 }
 
-.embed-page body,
-body.embed {
+.embed-page {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
   background: transparent;
+  overflow: hidden;
+}
+
+.embed-root {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+}
+
+/* Avoid min(100%, Npx) collapse when the embed page is sized to its content */
+.embed-page .widget-compact {
+  width: 340px;
+}
+
+.embed-page .widget-stack {
+  width: 280px;
 }
 
 /* --- Admin --- */

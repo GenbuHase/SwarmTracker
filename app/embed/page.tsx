@@ -1,14 +1,14 @@
-"use client";
+import { resolveEmbedVariant } from "@/lib/embed";
+import { EmbedApp } from "./EmbedApp";
 
-import { CompactWidget } from "@/components/CompactWidget";
-import { usePresence } from "@/components/usePresence";
+type Props = {
+  searchParams: Promise<{ variant?: string | string[] }>;
+};
 
-export default function EmbedPage() {
-  const { data, state } = usePresence();
+export default async function EmbedPage({ searchParams }: Props) {
+  const params = await searchParams;
+  const variant = resolveEmbedVariant(params.variant);
 
-  return (
-    <main className="embed-page">
-      <CompactWidget data={data} state={state} />
-    </main>
-  );
+  // key forces a clean mount when variant changes (avoids soft-nav hydration mismatches).
+  return <EmbedApp key={variant} variant={variant} />;
 }

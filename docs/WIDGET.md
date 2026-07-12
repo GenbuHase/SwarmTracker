@@ -116,17 +116,49 @@ Unknown（On だが表示対象なし）は下記。
 
 Away（アプリ Off）と違い、こちらは「公開スイッチは On だが、non-private のチェックインが無い」状態。
 
-### C. Embed snippet（想定）
+### C. Embed（`/embed`）
+
+クエリ `variant` で表示を切り替える。省略時は **stack**。
+
+| URL | 表示 |
+|---|---|
+| `/embed` または `/embed?variant=stack` | Stack（縦積み） |
+| `/embed?variant=compact` | Compact（一行） |
 
 ```html
+<!-- Stack（既定。高さは postMessage で合わせる想定。初期値はおおよそ） -->
 <iframe
+  id="swarmtracker"
   src="https://swarmtracker.example/embed"
   title="SwarmTracker"
-  style="border:0;width:320px;height:48px"
+  style="border:0;width:280px;height:160px;background:transparent;overflow:hidden"
 ></iframe>
+
+<!-- Compact -->
+<iframe
+  id="swarmtracker-compact"
+  src="https://swarmtracker.example/embed?variant=compact"
+  title="SwarmTracker"
+  style="border:0;width:340px;height:56px;background:transparent;overflow:hidden"
+></iframe>
+
+<script>
+  window.addEventListener("message", (event) => {
+    const data = event.data;
+    if (!data || data.source !== "swarmtracker:resize") return;
+    const frame = document.getElementById(
+      data.variant === "compact" ? "swarmtracker-compact" : "swarmtracker",
+    );
+    if (!(frame instanceof HTMLIFrameElement)) return;
+    frame.style.width = data.width + "px";
+    frame.style.height = data.height + "px";
+  });
+</script>
 ```
 
-または同一オリジンなら `div` + 小さなスクリプトで Compact を描画。
+`/embed` の `html` / `body` 背景は透明。ウィジェット実寸は `{ source: "swarmtracker:resize", variant, width, height }` の `postMessage` で親へ通知する。
+
+または同一オリジンなら `div` + 小さなスクリプトで描画。
 
 ## ビジュアル方針（初期）
 

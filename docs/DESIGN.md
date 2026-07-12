@@ -51,7 +51,7 @@
   ├─ POST /api/visibility   … 管理用
   ├─ GET  /admin            … On/Off UI
   ├─ GET  /                 … 表示ページ（Stack）+ OG メタ
-  ├─ GET  /embed            … 埋め込み（Compact、任意）
+  ├─ GET  /embed            … 埋め込み（`?variant=stack|compact`、既定 stack）
   └─ KV                     … { visibility: "on" | "off" }
 
 [閲覧者ブラウザ] → / または /api/presence のみ
@@ -284,7 +284,7 @@ Admin ← { ok: true }
 - Next.js（App Router）on Vercel
 - Route Handlers: `/api/presence`, `/api/visibility`, `/api/ogp`
 - KV: Vercel KV または Upstash Redis
-- フロント: `/`（Stack）+ `/admin`（+ 任意で `/embed` Compact）
+- フロント: `/`（Stack）+ `/admin`（+ 任意で `/embed?variant=`）
 - OGP: `next/og` ImageResponse
 
 ### 2.10 セキュリティチェックリスト

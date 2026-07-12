@@ -54,7 +54,7 @@ npm run dev
 ```
 
 - `/` — Stack ウィジェット
-- `/embed` — Compact（埋め込み向け）
+- `/embed` — 埋め込み（`?variant=stack` 既定 / `?variant=compact`）
 - `/admin` — On/Off 管理（Unlock で Bearer トークンを保持）
 - `GET /api/presence` — 公開 API
 - `POST /api/visibility` — 管理 API（`Authorization: Bearer ${ADMIN_TOKEN}`、失敗時は IP あたり試行制限あり）
