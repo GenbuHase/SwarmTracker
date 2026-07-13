@@ -1,6 +1,6 @@
 {
   "name": "@genbuhase/swarm-tracker",
-  "version": "alpha-1.1.7.1",
+  "version": "alpha-1.1.8",
   "private": true,
   "description": "Show your latest Swarm check-in on the web with On/Off privacy control",
   "scripts": {

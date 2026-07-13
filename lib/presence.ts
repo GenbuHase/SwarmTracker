@@ -36,7 +36,11 @@ export async function getPresence(): Promise<PresenceResponse> {
 /** Cache-busting token for `/api/ogp?v=…` (SNS caches by image URL). */
 export function ogImageVersion(result: PresenceResult): string {
   const { presence, settings } = result;
-  if (presence.visible) return presence.checkinId;
+  if (presence.visible) {
+    const ms = Date.parse(presence.checkedInAt);
+    const t = Number.isNaN(ms) ? "" : String(Math.floor(ms / 1000));
+    return t ? `${presence.checkinId}-${t}` : presence.checkinId;
+  }
   if (presence.reason === "disabled") return `off-${settings.updatedAt}`;
   return `unknown-${settings.updatedAt}`;
 }
