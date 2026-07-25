@@ -43,6 +43,17 @@ function TwitterIcon() {
   );
 }
 
+function MapIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+      <path
+        fill="currentColor"
+        d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6a2.5 2.5 0 0 1 0 5.5Z"
+      />
+    </svg>
+  );
+}
+
 export function StackWidget({ data, state }: Props) {
   const ui = resolveState(data, state);
 
@@ -94,21 +105,41 @@ export function StackWidget({ data, state }: Props) {
   const region = formatRegion(data.state, data.city, data.country);
   const shareUrl = buildSharePageUrl(data.checkedInAt);
   const twitterHref = buildTwitterShareUrl(shareUrl, `I'm at ${data.venueName}`);
+  const mapsHref =
+    data.lat != null && data.lng != null
+      ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+          `${data.lat},${data.lng}`,
+        )}`
+      : null;
 
   return (
     <div className="widget-stack" aria-live="polite">
       <div className="stack-header">
         <Eyebrow ui={ui} label="NOW" />
-        <a
-          className="stack-share-btn"
-          href={twitterHref}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Twitterでシェア"
-          title="Twitterでシェア"
-        >
-          <TwitterIcon />
-        </a>
+        <div className="stack-actions">
+          {mapsHref ? (
+            <a
+              className="stack-share-btn"
+              href={mapsHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Googleマップで開く"
+              title="Googleマップで開く"
+            >
+              <MapIcon />
+            </a>
+          ) : null}
+          <a
+            className="stack-share-btn"
+            href={twitterHref}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Twitterでシェア"
+            title="Twitterでシェア"
+          >
+            <TwitterIcon />
+          </a>
+        </div>
       </div>
       <p className="stack-title">{data.venueName}</p>
       {region ? <p className="stack-sub">{region}</p> : null}

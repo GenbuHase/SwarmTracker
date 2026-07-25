@@ -129,6 +129,12 @@ a {
   margin-bottom: 0;
 }
 
+.stack-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .stack-eyebrow .dot {
   flex-shrink: 0;
 }
